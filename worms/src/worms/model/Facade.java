@@ -92,7 +92,7 @@ public class Facade implements IFacade {
 
 	@Override
 	public void rename(Worm worm, String newName) {
-		worm.rename(newName);
+		worm.setName(newName);
 	}
 
 	@Override

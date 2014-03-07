@@ -2,7 +2,26 @@ package worms.model;
 
 import worms.util.Util;
 
+/**
+ * 
+ * @author 	Joland Baetens
+ * 			Robbe Berrevoets
+ * 		
+ *
+ */
+
 public class Worm {
+
+	private int actionPoints;
+	private double X;
+	private double Y;
+	private double orientation;
+	private double radius;
+	private String name; 
+	private final double DENSITY = 1062.0;
+	private final double EARTH_ACCELERATION = 9.80665;
+	private double minimalRadius = 0.25 ;
+	
 	/**
 	 * 
 	 * @param x
@@ -16,46 +35,50 @@ public class Worm {
 	 * 		The shape of a worm is a circle defined by this value.
 	 * @param name
 	 * 		This is the name of the worm.
+	 * @post 	The horizontal position is set to double value x
+	 * 			| new.getX() == x
+	 * @post 	The vertical position is set to double value y
+	 * 			| new.getY() == y
+	 * @post 	the orientation of the worm is set to the given orientation
+	 * 			| new.getOrientation() == orientation
+	 * @post 	the radius of this worm is set to the given radius
+	 * 			| new.getRadius() == radius
+	 * @post 	the name of the worm is equal to the given name
+	 * 			| new.getName() == name
+	 * ....
+	 * 
+	 * 
 	 * @return
 	 */
+	
 	public Worm(double x, double y, double orientation, double radius,
 			String name){
 		this.setX(x);
 		this.setY(y);
 		this.setOrientation(orientation);
 		this.setRadius(radius);
-		this.setName(name);
+		this.rename(name);
 		this.setActionPoints(this.getMaxActionPoints());
 	
 	}
-	private int actionPoints;
-	private double X;
-	private double Y;
-	private double orientation;
-	private double radius;
-	private String name; 
-	private final double DENSITY = 1062.0;
-	private final double EARTH_ACCELERATION = 9.80665;
-	private double mass;
-	private double minimalRadius = 0.25 ;
 	
 	/**
 	 * Returns whether or not the given worm can move a given number of steps.
 	 */
-	public boolean canMove(int nbSteps){
-		int cost =(int) Math.ceil(nbSteps*((double) Math.abs(Math.cos(this.getOrientation())) 
-				+ (double) Math.abs(4*Math.sin(this.getOrientation()))));
+	public boolean canMove(int cost){
 		return cost <= this.getActionPoints();
 	}
 
 	/**
 	 * Moves the given worm by the given number of steps.
 	 */
-	public void move(int nbSteps){
+	public void move(int nbSteps) throws IllegalCostException{
 		
 		int cost =(int) Math.ceil(nbSteps*((double) Math.abs(Math.cos(this.getOrientation())) 
 				+ (double) Math.abs(4*Math.sin(this.getOrientation()))));
-		
+		if (canMove(cost)){
+			throw new IllegalCostException(cost);
+		}
 		this.setActionPoints(this.getActionPoints() -cost);
 		double distance = nbSteps * this.getRadius();
 		this.setX(this.getX() + distance*Math.cos(this.getOrientation()));
@@ -91,16 +114,24 @@ public class Worm {
 	 * JUMPING DEFENSIEF UITWERKEN! HOE DE ACTIEPUNTEN OPLOSSEN?
 	 * Makes the given worm jump.
 	 */
-	void jump(){
-		if (orientation tussen 0 en Pi):
-			jump
+	public void jump(){
+		if (Util.fuzzyGreaterThanOrEqualTo(this.getOrientation(),0) && 
+				!Util.fuzzyGreaterThanOrEqualTo(this.getOrientation(),Math.PI)){
+			double t = this.getJumpTime();
+			double [] endPosition = this.getJumpStep(t);
+			this.setX(endPosition[0]);
+			this.setY(endPosition[1]);
+			this.setActionPoints(0);
+			
+		}
+			
 	}
 
 	/**
 	 * Returns the total amount of time (in seconds) that a
 	 * jump of the given worm would take.
 	 */
-	private double getJumpTime(){
+	double getJumpTime(){
 		double d = Math.pow(this.getStartVelocity(),2)*Math.sin(2*this.getOrientation())/this.getEarthAcceleration();
 		double t = (d/(this.getStartVelocity()*Math.cos(this.getOrientation())));
 		return t;
@@ -114,7 +145,7 @@ public class Worm {
 	 *  with the first element being the x-coordinate and
 	 *  the second element the y-coordinate
 	 */
-	private double[] getJumpStep(double t){
+	public double[] getJumpStep(double t){
 		
 		double initVelocityX = this.getStartVelocity() * Math.cos(this.getOrientation());
 		double initVelocityY = this.getStartVelocity() * Math.sin(this.getOrientation());
@@ -135,8 +166,11 @@ public class Worm {
 	public double getX(){
 		return this.X;
 	}
-	public void setX(double x){
-//		this.isValidCoordinate(x);
+	public void setX(double x) throws IllegalCoordinateException{
+
+		if (!this.isValidCoordinate(x)){
+			throw new IllegalCoordinateException(x);
+		}
 		this.X = x;
 	}
 	private boolean isValidCoordinate(double coordinate) {
@@ -150,8 +184,11 @@ public class Worm {
 	public double getY(){
 		return this.Y;
 	}
-	public void setY(double y){
-//		this.isValidCoordinate(y);
+	public void setY(double y) throws IllegalCoordinateException{
+
+		if (!this.isValidCoordinate(y)){
+			throw new IllegalCoordinateException(y);
+		}
 		this.Y = y;
 	}
 
@@ -190,15 +227,18 @@ public class Worm {
 	 * 			|(radius > this.getMinimalRadius() && radius.isType() == double);
 	 */
 	public boolean isValidRadius(double radius){
-		return (Util.fuzzyGreaterThanOrEqualTo(radius,this.getMinimalRadius()));
+		return ((Util.fuzzyGreaterThanOrEqualTo(radius,this.getMinimalRadius())) && (radius != Double.NaN));
 				
 	}
 	
 	/**
 	 * Sets the radius of the given worm to the given value.
 	 */
-	void setRadius(double newRadius){
-		// isValidRadius
+	void setRadius(double newRadius) throws IllegalRadiusException{
+
+		if (!isValidRadius(newRadius)){
+			throw new IllegalRadiusException(newRadius);
+		}
 		this.radius = newRadius;
 	}
 	
@@ -221,6 +261,13 @@ public class Worm {
 	}
 	
 	public void setActionPoints(int newActionPoints){
+		if (newActionPoints < 0){
+			newActionPoints = 0;
+		}
+		if (newActionPoints > this.getMaxActionPoints()){
+			newActionPoints =  this.getMaxActionPoints();
+		}
+		
 		this.actionPoints = newActionPoints;
 	}
 	
@@ -254,10 +301,12 @@ public class Worm {
 	/**
 	 * Renames the given worm.
 	 */
-	public void setName(String newName) {
+	public void rename(String newName) throws IllegalNameException{
 		if(isValidName(newName)){
-			this.name = newName;
+			throw new IllegalNameException(newName);
 		}
+		this.name = newName;
+		
 	}
 
 	/**
