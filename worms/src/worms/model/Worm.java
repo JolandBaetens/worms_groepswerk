@@ -11,15 +11,55 @@ import worms.util.Util;
  */
 
 public class Worm {
-
+	/**
+	 * A variable that holds the actionpoints for the worm. The worm can use these 
+	 * actionpoints to move, turn and jump. It is associated with the mass of the worm
+	 * and must be smaller than maximumactionpoints.  
+	 */
 	private int actionPoints;
+	
+	/**
+	 * This is the position on the horizontal axis for the worm. 
+	 */
 	private double X;
+	
+	/**
+	 * This is the position on the vertical axis for the worm. 
+	 */
 	private double Y;
+	
+	/**
+	 * This value gives the angle in radians in wich the worm is facing. 	
+	 * The angle is 0 when facing the positive x-axis and pi/2 when facing the positive y-axis.
+	 */
 	private double orientation;
+	
+	/**
+	 * The shape of a worm is a circle defined by this value.
+	 * the radius must be greater than the minimalRadius.
+	 */
 	private double radius;
+	
+	/**
+	 * The name of the worm.
+	 */
 	private String name; 
+	
+	/**
+	 * The densitiy of the worm, this is a final variable and so it will not change during
+	 * the game.
+	 */
 	private final double DENSITY = 1062.0;
+	
+	/**
+	 * the acceleration the earth gives the worm. 
+	 * This is a final variable so we assume the acceleration is constant.
+	 */
 	private final double EARTH_ACCELERATION = 9.80665;
+	
+	/**
+	 * This defines a lower bound for the radius. 
+	 */
 	private double minimalRadius = 0.25 ;
 	
 	/**
@@ -28,7 +68,7 @@ public class Worm {
 	 * 		This value gives the position on the horizontal axis.
 	 * @param y
 	 * 		This value gives the position on the vertical axis.
-	 * @param direction
+	 * @param orientation
 	 * 		This value gives the angle in radians in wich the worm is facing. 	
 	 * 		The angle is 0 when facing the positive x-axis and pi/2 when facing the positive y-axis.
 	 * @param radius
@@ -45,7 +85,7 @@ public class Worm {
 	 * 			| new.getRadius() == radius
 	 * @post 	the name of the worm is equal to the given name
 	 * 			| new.getName() == name
-	 * ....
+	 * 
 	 * 
 	 * 
 	 * @return
@@ -99,7 +139,7 @@ public class Worm {
 	 * Turns the given worm by the given angle.
 	 */
 	public void turn(double angle){
-		assert this.isValidOrientation(angle);
+//		assert this.isValidOrientation(angle);
 		assert this.isValidOrientation(this.getOrientation() + angle);
 		assert this.canTurn(angle);
 		
@@ -111,7 +151,7 @@ public class Worm {
 	}
 
 	/**
-	 * JUMPING DEFENSIEF UITWERKEN! HOE DE ACTIEPUNTEN OPLOSSEN?
+	 * JUMPING DEFENSIEF UITWERKEN!
 	 * Makes the given worm jump.
 	 */
 	public void jump(){
