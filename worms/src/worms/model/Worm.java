@@ -1,3 +1,12 @@
+/**
+ * WAT TE DOEN:
+ * 
+ * - documentatie
+ * - tests
+ * - jumping defensief uitwerken
+ * 
+ * 
+ */
 package worms.model;
 
 import worms.util.Util;
@@ -85,14 +94,29 @@ public class Worm {
 	 * 			| new.getRadius() == radius
 	 * @post 	the name of the worm is equal to the given name
 	 * 			| new.getName() == name
-	 * 
-	 * 
-	 * 
-	 * @return
+	 * @throws 	IllegalArgumentException
+	 * 			The x-position is invalid when the given double is not a number.
+	 * 			| (!isValidCoordinate(x))
+	 * @throws 	IllegalArgumentException
+	 * 			The y-position is invalid when the given double is not a number.
+	 * 			| (!isValidCoordinate(y))
+	 * @throws 	IllegalArgumentException
+	 * 			the orientation is invalid when the given double is not in between 
+	 * 			0 an 2*Pi. 
+	 * 			| (!isValidOrientation(orientation))
+	 * @throws 	IllegalArgumentException
+	 * 			the Radius is invalid when it's smaller than the minimalRadius
+	 * 			and it's not a number. 
+	 * 			|(!isValidRadius(radius))
+	 * @throws 	IllegalArgumentException
+	 * 			the name is invalid when it hasn't at least two characters, when it contains
+	 * 			a character wich is not a letter, quote or space and when the name doesn't start
+	 * 			with a capital letter.
+	 * 			|(!isValidName(name))
 	 */
 	
 	public Worm(double x, double y, double orientation, double radius,
-			String name){
+			String name) throws IllegalArgumentException {
 		this.setX(x);
 		this.setY(y);
 		this.setOrientation(orientation);
@@ -112,12 +136,12 @@ public class Worm {
 	/**
 	 * Moves the given worm by the given number of steps.
 	 */
-	public void move(int nbSteps) throws IllegalCostException{
+	public void move(int nbSteps) throws IllegalArgumentException{
 		
 		int cost =(int) Math.ceil(nbSteps*((double) Math.abs(Math.cos(this.getOrientation())) 
 				+ (double) Math.abs(4*Math.sin(this.getOrientation()))));
 		if (canMove(cost)){
-			throw new IllegalCostException(cost);
+			throw new IllegalArgumentException("There aren't enough action points");
 		}
 		this.setActionPoints(this.getActionPoints() -cost);
 		double distance = nbSteps * this.getRadius();
@@ -129,9 +153,8 @@ public class Worm {
 	/**
 	 * Returns whether or not the given worm can turn by the given angle.
 	 */
-	public boolean canTurn(double angle){
-		double fraction = angle/(2*Math.PI);
-		int cost = (int) Math.ceil(60/fraction);
+	public boolean canTurn(int cost){
+
 		return cost <= this.getActionPoints();
 	}
 
@@ -139,15 +162,29 @@ public class Worm {
 	 * Turns the given worm by the given angle.
 	 */
 	public void turn(double angle){
-//		assert this.isValidOrientation(angle);
-		assert this.isValidOrientation(this.getOrientation() + angle);
-		assert this.canTurn(angle);
+		assert this.isValidOrientation(Math.abs(angle));
+		if (angle < 0){
+			positiveAngle = (2*Math.PI + angle);
+		}
+//		assert this.isValidOrientation(this.getOrientation() + angle);
+	
+		if (positiveAngle > Math.PI){
+			int cost = (int) (2*Math.PI - positiveAngle)* 30 / (Math.PI));
+		}
+		else {
+			int cost = (int) (positiveAngle* 30 / (Math.PI));
+		}
+			
 		
-		this.setOrientation(this.getOrientation() + angle);
-		double fraction = angle/(2*Math.PI);
-		int cost = (int) Math.ceil(60/fraction);
+		assert this.canTurn(cost);
+		
 		this.setActionPoints(this.getActionPoints() -cost);
 		
+		
+		double newOrientation  = (this.getOrientation() + positiveAngle) % 2*Math.PI; 
+		this.setOrientation(this.getOrientation() + positiveAngle);
+		
+
 	}
 
 	/**
@@ -206,10 +243,21 @@ public class Worm {
 	public double getX(){
 		return this.X;
 	}
-	public void setX(double x) throws IllegalCoordinateException{
+
+	/**
+	 * Sets the x-position of the worm to the given value x.
+	 * @param x
+	 * This value gives the position on the horizontal axis.
+	 * @post	The x-position is set to the given value x. 
+	 * 			|new.getX() == x
+	 * @throws 	IllegalArgumentException
+	 * 			The x-position is invalid when the given double is not a number.
+	 * 			| (!isValidCoordinate(x))
+	 */
+	public void setX(double x) throws IllegalArgumentException{
 
 		if (!this.isValidCoordinate(x)){
-			throw new IllegalCoordinateException(x);
+			throw new IllegalArgumentException("Invalid x-position!");
 		}
 		this.X = x;
 	}
@@ -224,10 +272,10 @@ public class Worm {
 	public double getY(){
 		return this.Y;
 	}
-	public void setY(double y) throws IllegalCoordinateException{
+	public void setY(double y) throws IllegalArgumentException{
 
 		if (!this.isValidCoordinate(y)){
-			throw new IllegalCoordinateException(y);
+			throw new IllegalArgumentException("Invalid y-position!");
 		}
 		this.Y = y;
 	}
@@ -240,6 +288,7 @@ public class Worm {
 	}
 	
 	public void setOrientation(double orientation){
+		
 		assert isValidOrientation(orientation);
 		this.orientation = orientation;
 	}
@@ -274,10 +323,10 @@ public class Worm {
 	/**
 	 * Sets the radius of the given worm to the given value.
 	 */
-	void setRadius(double newRadius) throws IllegalRadiusException{
+	void setRadius(double newRadius) throws IllegalArgumentException{
 
 		if (!isValidRadius(newRadius)){
-			throw new IllegalRadiusException(newRadius);
+			throw new IllegalArgumentException("Invalid radius!");
 		}
 		this.radius = newRadius;
 	}
@@ -341,9 +390,9 @@ public class Worm {
 	/**
 	 * Renames the given worm.
 	 */
-	public void rename(String newName) throws IllegalNameException{
+	public void rename(String newName) throws IllegalArgumentException{
 		if(isValidName(newName)){
-			throw new IllegalNameException(newName);
+			throw new IllegalArgumentException("Invalid name!");
 		}
 		this.name = newName;
 		
