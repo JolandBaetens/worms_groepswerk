@@ -129,18 +129,35 @@ public class Worm {
 	/**
 	 * Returns whether or not the given worm can move a given number of steps.
 	 */
-	public boolean canMove(int cost){
+	public boolean canMove(int nbSteps){
+		int cost =(int) Math.ceil(nbSteps*((double) Math.abs(Math.cos(this.getOrientation())) 
+				+ (double) Math.abs(4*Math.sin(this.getOrientation()))));
 		return cost <= this.getActionPoints();
 	}
 
 	/**
-	 * Moves the given worm by the given number of steps.
+	 * Moves the given worm by the given number of steps. The distance that the worm moves
+	 * is the number of steps multiplied with the radius. 
+	 * @param 	nbSteps
+	 * 			This value gives the number of steps that the worm will move. 
+	 * @post	The worm has changed it's position, the movement in x and y direction is calculated
+	 * 			with distance multiplied with cosinus for x and with sinus for y.
+	 * 			The x movement is added with the current x position.
+	 * 			The y movement is added with the current y position.
+	 * 			|this.setX(this.getX() + distance*Math.cos(this.getOrientation()));
+	 * 			|this.setY(this.getY() + distance*Math.sin(this.getOrientation()));
+	 * @throws	IllegalArgumentException
+	 * 			The worm can't move when there aren't sufficient action points!
+	 * 			The total cost of a step in the current direction can be computed as followed:
+	 * 			cost = cost =(int) Math.ceil(nbSteps*((double) Math.abs(Math.cos(this.getOrientation())) 
+	 * 			+ (double) Math.abs(4*Math.sin(this.getOrientation()))));
+	 * 			|(!canMove(cost))
 	 */
 	public void move(int nbSteps) throws IllegalArgumentException{
 		
 		int cost =(int) Math.ceil(nbSteps*((double) Math.abs(Math.cos(this.getOrientation())) 
 				+ (double) Math.abs(4*Math.sin(this.getOrientation()))));
-		if (canMove(cost)){
+		if (!canMove(cost)){
 			throw new IllegalArgumentException("There aren't enough action points");
 		}
 		this.setActionPoints(this.getActionPoints() -cost);
@@ -153,8 +170,19 @@ public class Worm {
 	/**
 	 * Returns whether or not the given worm can turn by the given angle.
 	 */
-	public boolean canTurn(int cost){
-
+	public boolean canTurn(double angle){
+		double positiveAngle = angle;
+		if (angle < 0){
+			positiveAngle = (2*Math.PI + angle);
+		}
+		
+//		assert this.isValidOrientation(this.getOrientation() + angle);
+		int cost = (int) Math.ceil(positiveAngle* 30 / (Math.PI));
+		if (positiveAngle > Math.PI){
+			// hoe ronden we cost hier af?
+			cost = (int) Math.ceil((2*Math.PI - positiveAngle)* 30 / (Math.PI));
+		}
+		
 		return cost <= this.getActionPoints();
 	}
 
@@ -163,37 +191,40 @@ public class Worm {
 	 */
 	public void turn(double angle){
 		assert this.isValidOrientation(Math.abs(angle));
+		double positiveAngle = angle;
 		if (angle < 0){
 			positiveAngle = (2*Math.PI + angle);
 		}
+		
+		assert this.canTurn(angle);
 //		assert this.isValidOrientation(this.getOrientation() + angle);
-	
+		int cost = (int) Math.ceil(positiveAngle* 30 / (Math.PI));
 		if (positiveAngle > Math.PI){
-			int cost = (int) (2*Math.PI - positiveAngle)* 30 / (Math.PI));
+			// hoe ronden we cost hier af?
+			cost = (int) Math.ceil((2*Math.PI - positiveAngle)* 30 / (Math.PI));
 		}
-		else {
-			int cost = (int) (positiveAngle* 30 / (Math.PI));
-		}
-			
+		
 		
 		assert this.canTurn(cost);
 		
 		this.setActionPoints(this.getActionPoints() -cost);
 		
 		
-		double newOrientation  = (this.getOrientation() + positiveAngle) % 2*Math.PI; 
-		this.setOrientation(this.getOrientation() + positiveAngle);
+		double newOrientation  = (this.getOrientation() + positiveAngle) % (2*Math.PI); 
+		this.setOrientation(newOrientation);
 		
 
 	}
+	
 
 	/**
 	 * JUMPING DEFENSIEF UITWERKEN!
 	 * Makes the given worm jump.
 	 */
 	public void jump(){
+		
 		if (Util.fuzzyGreaterThanOrEqualTo(this.getOrientation(),0) && 
-				!Util.fuzzyGreaterThanOrEqualTo(this.getOrientation(),Math.PI)){
+				(!Util.fuzzyGreaterThanOrEqualTo(this.getOrientation(),Math.PI))){
 			double t = this.getJumpTime();
 			double [] endPosition = this.getJumpStep(t);
 			this.setX(endPosition[0]);
@@ -209,6 +240,9 @@ public class Worm {
 	 * jump of the given worm would take.
 	 */
 	double getJumpTime(){
+		if (this.getActionPoints() <= 0){
+			return 0;
+		}
 		double d = Math.pow(this.getStartVelocity(),2)*Math.sin(2*this.getOrientation())/this.getEarthAcceleration();
 		double t = (d/(this.getStartVelocity()*Math.cos(this.getOrientation())));
 		return t;
@@ -272,6 +306,18 @@ public class Worm {
 	public double getY(){
 		return this.Y;
 	}
+	
+	/**
+	 * Sets the y-position of the worm to the given value y.
+	 * @param y
+	 * This value gives the position on the vertical axis.
+	 * @post	The y-position is set to the given value y. 
+	 * 			|new.getY() == y
+	 * @throws 	IllegalArgumentException
+	 * 			The y-position is invalid when the given double is not a number.
+	 * 			| (!isValidCoordinate(y))
+	 */
+	
 	public void setY(double y) throws IllegalArgumentException{
 
 		if (!this.isValidCoordinate(y)){
@@ -296,7 +342,6 @@ public class Worm {
 	public boolean isValidOrientation(double orientation){
 		return ((Util.fuzzyGreaterThanOrEqualTo(orientation,0)) && 
 				(!Util.fuzzyGreaterThanOrEqualTo(orientation,2*Math.PI)));
-//				((orientation >= 0)&&(orientation<2*Math.PI));
 	}
 		
 
@@ -383,7 +428,7 @@ public class Worm {
 		} else if(!Character.isUpperCase(newName.charAt(0))){
 			return false;
 		} else {
-			return newName.matches("[a-zA-Z\'\" ]");
+			return newName.matches("[a-zA-Z\'\" ]*");
 		}
 	}
 
@@ -391,7 +436,7 @@ public class Worm {
 	 * Renames the given worm.
 	 */
 	public void rename(String newName) throws IllegalArgumentException{
-		if(isValidName(newName)){
+		if(!isValidName(newName)){
 			throw new IllegalArgumentException("Invalid name!");
 		}
 		this.name = newName;
