@@ -17,7 +17,20 @@ public class Facade implements IFacade {
 
 	@Override
 	public void move(Worm worm, int nbSteps) {
-		worm.move(nbSteps);
+		try{
+			worm.move(nbSteps);
+		}
+		catch (IllegalArgumentException exc){
+			if(exc.getMessage() == "This value of steps isn't possible"){
+				throw new ModelException("You can not move!");
+			}
+			if(exc.getMessage() == "There aren't enough action points"){
+				throw new ModelException("You don't got enough action points");
+			}
+		}
+		catch (IllegalStepsException exc){
+			throw new ModelException("invalid nbSteps");
+		}
 	}
 
 	@Override
@@ -92,7 +105,7 @@ public class Facade implements IFacade {
 
 	@Override
 	public void rename(Worm worm, String newName) {
-		worm.setName(newName);
+		worm.rename(newName);
 	}
 
 	@Override
